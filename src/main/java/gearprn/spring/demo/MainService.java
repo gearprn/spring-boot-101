@@ -48,7 +48,7 @@ public class MainService {
 
     // get single cat
     @RequestMapping(value = "/cats/{catId}", method = RequestMethod.GET)
-    public ResponseEntity<ArrayList<Cat>> getSingleCat(@PathVariable int catId) {
+    public ResponseEntity getSingleCat(@PathVariable int catId) {
         id = catId;
         if (catId < 0 || catId > cats.size() - 1) {
             Map<String, Object> errorMap = new HashMap<String, Object>();
