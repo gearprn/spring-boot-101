@@ -14,10 +14,10 @@ import java.util.Map;
 @RestController
 public class MainService {
     private ArrayList<Cat> cats = new ArrayList<Cat>();
-    private int id = -1;
 
     public MainService() {
         Cat c = new Cat();
+        Cat.id++;
         c.setName("Taro");
         c.setAge(10);
         cats.add(c);
@@ -36,43 +36,47 @@ public class MainService {
     @RequestMapping(value = "/cats", method = RequestMethod.POST)
     public ResponseEntity<Cat> createCat(@RequestBody Cat c) {
         cats.add(c);
+        Cat.id++;
         return new ResponseEntity<Cat>(cats.get(cats.size() - 1), HttpStatus.OK);
     }
 
     // read
     @RequestMapping(value = "/cats", method = RequestMethod.GET)
-    public ResponseEntity<ArrayList<Cat>> getCats() {
-        ArrayList<Cat> tempArrayList = new ArrayList<Cat>();
-        return new ResponseEntity<ArrayList<Cat>>(cats, HttpStatus.OK);
+    public ResponseEntity<ArrayList<Map<String, Object>>> getCats() {
+        ArrayList<Map<String, Object>> response =  new ArrayList<Map<String, Object>>();
+        for (int i = 0; i < cats.size(); i++) {
+            Map<String, Object> catMap = new HashMap<String, Object>();
+            catMap.put("id", i + 1);
+            catMap.put("name", cats.get(i).getName());
+            catMap.put("age", cats.get(i).getAge());
+            response.add(catMap);
+        }
+        return new ResponseEntity<ArrayList<Map<String, Object>>>(response, HttpStatus.OK);
     }
 
     // get single cat
     @RequestMapping(value = "/cats/{catId}", method = RequestMethod.GET)
     public ResponseEntity getSingleCat(@PathVariable int catId) {
-        id = catId;
-        if (catId < 0 || catId > cats.size() - 1) {
+        if (catId < 1 || catId > cats.size()) {
             Map<String, Object> errorMap = new HashMap<String, Object>();
             errorMap.put("ErrorCode", 400);
             errorMap.put("ErrorMessage", "Bad Request");
             return new ResponseEntity(errorMap ,HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity(cats.get(catId) ,HttpStatus.BAD_REQUEST);
+        Map<String, Object> catMap = new HashMap<String, Object>();
+        catMap.put("id", catId);
+        catMap.put("name", cats.get(catId - 1).getName());
+        catMap.put("age", cats.get(catId - 1).getAge());
+        return new ResponseEntity(catMap ,HttpStatus.BAD_REQUEST);
     }
 
     //update
-    @RequestMapping(value = "/cats/update", method = RequestMethod.POST)
-    public ResponseEntity updateCat(@RequestBody Cat c) {
-        id = -1;
-        for (int i = 0; i < cats.size(); i++) {
-            if (cats.get(i).getName().equals(c.getName())) {
-                cats.get(i).setName(c.getName());
-                cats.get(i).setAge(c.getAge());
-                id = i;
-                break;
-            }
-        }
-        if (id != -1) {
-            return new ResponseEntity(cats.get(id), HttpStatus.OK);
+    @RequestMapping(value = "/cats/{catId}", method = RequestMethod.PATCH)
+    public ResponseEntity updateCat(@PathVariable int catId, @RequestBody Cat c) {
+        if (catId > 0 && catId <= cats.size()) {
+            cats.get(catId - 1).setName(c.getName());
+            cats.get(catId - 1).setAge(c.getAge());
+            return new ResponseEntity(cats.get(catId - 1), HttpStatus.OK);
         }
         Map<String, Object> errorMap = new HashMap<String, Object>();
         errorMap.put("ErrorCode", 400);
@@ -81,20 +85,10 @@ public class MainService {
     }
 
     //delete
-    @RequestMapping(value = "/cats/delete", method = RequestMethod.POST)
-    public ResponseEntity deleteCat(@RequestBody(required = false) Cat c) {
-        System.out.println(c.getName());
-        id = -1;
-        for (int i = 0; i < cats.size(); i++) {
-            if (cats.get(i).getName().equals(c.getName())) {
-                id = i;
-                break;
-            }
-        }
-
-        if (id != -1) {
-            Cat deletedCat = cats.remove(id);
-            return new ResponseEntity(deletedCat, HttpStatus.OK);
+    @RequestMapping(value = "/cats/{catId}", method = RequestMethod.DELETE)
+    public ResponseEntity deleteCat(@PathVariable int catId, @RequestBody(required = false) Cat c) {
+        if (catId > 0 && catId <= cats.size()) {
+            return new ResponseEntity(cats.remove(catId - 1), HttpStatus.OK);
         }
         Map<String, Object> errorMap = new HashMap<String, Object>();
         errorMap.put("ErrorCode", 400);
