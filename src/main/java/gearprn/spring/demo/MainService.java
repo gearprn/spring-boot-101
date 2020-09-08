@@ -13,14 +13,26 @@ import java.util.Map;
 @SpringBootApplication
 @RestController
 public class MainService {
-    private ArrayList<Cat> cats = new ArrayList<Cat>();
+    Map<String, Object> errorMap = new HashMap<String, Object>();
+    private ArrayList<Car> cars = new ArrayList<Car>();
+    private boolean isFound = false;
+    private int index = -1;
 
     public MainService() {
-        Cat c = new Cat();
-        Cat.id++;
-        c.setName("Taro");
-        c.setAge(10);
-        cats.add(c);
+        Car c = new Car();
+        Car.totalCar++;
+
+        c.setColor("Gray");
+        c.setType("SUV");
+        c.setDisplacement(2000);
+        c.setSunroof(true);
+        c.setSpeed(80);
+        c.setId(Car.totalCar);
+
+        cars.add(c);
+
+        errorMap.put("ErrorCode", 400);
+        errorMap.put("ErrorMessage", "Bad Request");
     }
 
     public static void main(String[] args) {
@@ -33,66 +45,70 @@ public class MainService {
     }
 
     //create
-    @RequestMapping(value = "/cats", method = RequestMethod.POST)
-    public ResponseEntity<Cat> createCat(@RequestBody Cat c) {
-        cats.add(c);
-        Cat.id++;
-        return new ResponseEntity<Cat>(cats.get(cats.size() - 1), HttpStatus.OK);
+    @RequestMapping(value = "/cars", method = RequestMethod.POST)
+    public ResponseEntity<Car> createCat(@RequestBody Car c) {
+        Car.totalCar++;
+        c.setId(Car.totalCar);
+        cars.add(c);
+        return new ResponseEntity<Car>(c, HttpStatus.OK);
     }
 
     // read
-    @RequestMapping(value = "/cats", method = RequestMethod.GET)
-    public ResponseEntity<ArrayList<Map<String, Object>>> getCats() {
-        ArrayList<Map<String, Object>> response =  new ArrayList<Map<String, Object>>();
-        for (int i = 0; i < cats.size(); i++) {
-            Map<String, Object> catMap = new HashMap<String, Object>();
-            catMap.put("id", i + 1);
-            catMap.put("name", cats.get(i).getName());
-            catMap.put("age", cats.get(i).getAge());
-            response.add(catMap);
-        }
-        return new ResponseEntity<ArrayList<Map<String, Object>>>(response, HttpStatus.OK);
+    @RequestMapping(value = "/cars", method = RequestMethod.GET)
+    public ResponseEntity<ArrayList<Car>> getCats() {
+        return new ResponseEntity<ArrayList<Car>>(cars, HttpStatus.OK);
     }
 
     // get single cat
-    @RequestMapping(value = "/cats/{catId}", method = RequestMethod.GET)
-    public ResponseEntity getSingleCat(@PathVariable int catId) {
-        if (catId < 1 || catId > cats.size()) {
-            Map<String, Object> errorMap = new HashMap<String, Object>();
-            errorMap.put("ErrorCode", 400);
-            errorMap.put("ErrorMessage", "Bad Request");
+    @RequestMapping(value = "/cars/{carId}", method = RequestMethod.GET)
+    public ResponseEntity getSingleCat(@PathVariable int carId) {
+        isFound = isHaveId(carId);
+
+        if (!isFound) {
             return new ResponseEntity(errorMap ,HttpStatus.BAD_REQUEST);
         }
-        Map<String, Object> catMap = new HashMap<String, Object>();
-        catMap.put("id", catId);
-        catMap.put("name", cats.get(catId - 1).getName());
-        catMap.put("age", cats.get(catId - 1).getAge());
-        return new ResponseEntity(catMap ,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity(cars.get(index) ,HttpStatus.BAD_REQUEST);
     }
 
     //update
-    @RequestMapping(value = "/cats/{catId}", method = RequestMethod.PATCH)
-    public ResponseEntity updateCat(@PathVariable int catId, @RequestBody Cat c) {
-        if (catId > 0 && catId <= cats.size()) {
-            cats.get(catId - 1).setName(c.getName());
-            cats.get(catId - 1).setAge(c.getAge());
-            return new ResponseEntity(cats.get(catId - 1), HttpStatus.OK);
+    @RequestMapping(value = "/cars/{carId}", method = RequestMethod.PATCH)
+    public ResponseEntity updateCat(@PathVariable int carId, @RequestBody Car c) {
+        isFound = isHaveId(carId);
+
+        if (!isFound) {
+            return new ResponseEntity(errorMap ,HttpStatus.BAD_REQUEST);
         }
-        Map<String, Object> errorMap = new HashMap<String, Object>();
-        errorMap.put("ErrorCode", 400);
-        errorMap.put("ErrorMessage", "Bad Request");
-        return new ResponseEntity(errorMap ,HttpStatus.BAD_REQUEST);
+
+        cars.get(index).setColor(c.getColor());
+        cars.get(index).setType(c.getType());
+        cars.get(index).setDisplacement(c.getDisplacement());
+        cars.get(index).setSunroof(c.isSunroof());
+        cars.get(index).setSpeed(c.getSpeed());
+        return new ResponseEntity(cars.get(index), HttpStatus.OK);
     }
 
     //delete
-    @RequestMapping(value = "/cats/{catId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteCat(@PathVariable int catId, @RequestBody(required = false) Cat c) {
-        if (catId > 0 && catId <= cats.size()) {
-            return new ResponseEntity(cats.remove(catId - 1), HttpStatus.OK);
+    @RequestMapping(value = "/cars/{carId}", method = RequestMethod.DELETE)
+    public ResponseEntity deleteCat(@PathVariable int carId, @RequestBody(required = false) Cat c) {
+        isFound = isHaveId(carId);
+
+        if (!isFound) {
+            return new ResponseEntity(errorMap, HttpStatus.BAD_REQUEST);
         }
-        Map<String, Object> errorMap = new HashMap<String, Object>();
-        errorMap.put("ErrorCode", 400);
-        errorMap.put("ErrorMessage", "Bad Request");
-        return new ResponseEntity(errorMap, HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity(cars.remove(index), HttpStatus.OK);
+    }
+
+    private boolean isHaveId(int id) {
+        isFound = false;
+        index = -1;
+        for (int i = 0; i < cars.size(); i++) {
+            if (cars.get(i).getId() == id) {
+                isFound = true;
+                index = i;
+                break;
+            }
+        }
+        return isFound;
     }
 }

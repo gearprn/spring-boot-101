@@ -1,9 +1,18 @@
 package gearprn.spring.demo;
 
 public class Cat {
+    private int id;
     private String name;
     private int age;
-    public static int id = 0;
+    public static int totalCat = 0;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
