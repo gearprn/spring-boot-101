@@ -3,6 +3,7 @@ package gearprn.spring.demo;
 public class Cat {
     private String name;
     private int age;
+    public static int id = 0;
 
     public String getName() {
         return name;
