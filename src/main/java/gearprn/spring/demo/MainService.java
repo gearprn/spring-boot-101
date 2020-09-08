@@ -46,11 +46,11 @@ public class MainService {
 
     //create
     @RequestMapping(value = "/cars", method = RequestMethod.POST)
-    public ResponseEntity<Car> createCat(@RequestBody Car c) {
+    public ResponseEntity<ArrayList<Car>> createCat(@RequestBody Car c) {
         Car.totalCar++;
         c.setId(Car.totalCar);
         cars.add(c);
-        return new ResponseEntity<Car>(c, HttpStatus.OK);
+        return new ResponseEntity<ArrayList<Car>>(cars, HttpStatus.OK);
     }
 
     // read
@@ -84,7 +84,7 @@ public class MainService {
         cars.get(index).setDisplacement(c.getDisplacement());
         cars.get(index).setSunroof(c.isSunroof());
         cars.get(index).setSpeed(c.getSpeed());
-        return new ResponseEntity(cars.get(index), HttpStatus.OK);
+        return new ResponseEntity(cars, HttpStatus.OK);
     }
 
     //delete
@@ -95,8 +95,8 @@ public class MainService {
         if (!isFound) {
             return new ResponseEntity(errorMap, HttpStatus.BAD_REQUEST);
         }
-
-        return new ResponseEntity(cars.remove(index), HttpStatus.OK);
+        cars.remove(index);
+        return new ResponseEntity(cars, HttpStatus.OK);
     }
 
     private boolean isHaveId(int id) {
